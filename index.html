@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Diário de Faltas</title>
+  <title>Diário de Faltas - 6B</title>
   <style>
     body {
       font-family: sans-serif;
@@ -28,53 +28,64 @@
   </style>
 </head>
 <body>
-  <h2>Diário de Faltas - 6º B</h2>
+  <h2>Diário de Faltas - 6B</h2>
   <div id="loading">Carregando dados...</div>
   <table id="tabela" style="display:none"></table>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbywqNL07V-nAMH6er8XbfPM54CjrnjaJxatT74VhWB6Q8FQFotEYymu2e6NuEOm_I8XAQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwJ9S6eP5CFhtutSx64FZmnUTmuupayGpCjroDScxaC_x0M8W_P--T1juaFahbYme6x/exec";
 
     async function carregarDados() {
-      const resposta = await fetch(API_URL);
-      const dados = await resposta.json();
+      try {
+        const resposta = await fetch(API_URL);
+        const dados = await resposta.json();
 
-      const tabela = document.getElementById("tabela");
-      tabela.innerHTML = "";
+        const tabela = document.getElementById("tabela");
+        tabela.innerHTML = "";
 
-      dados.forEach((linha, i) => {
-        const tr = document.createElement("tr");
+        dados.forEach((linha, i) => {
+          const tr = document.createElement("tr");
 
-        linha.forEach((celula, j) => {
-          const tag = i === 0 ? "th" : "td";
-          const cell = document.createElement(tag);
+          linha.forEach((celula, j) => {
+            const tag = i === 0 ? "th" : "td";
+            const cell = document.createElement(tag);
 
-          if (i > 0 && j > 0) {
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.checked = celula === true;
-            checkbox.addEventListener("change", () => atualizarCelula(i, j, checkbox.checked));
-            cell.appendChild(checkbox);
-          } else {
-            cell.textContent = celula;
-          }
+            if (i > 0 && j > 0) {
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.checked = celula === true || celula === "TRUE" || celula === "✓";
+              checkbox.addEventListener("change", () => atualizarCelula(i, j, checkbox.checked));
+              cell.appendChild(checkbox);
+            } else {
+              cell.textContent = celula;
+            }
 
-          tr.appendChild(cell);
+            tr.appendChild(cell);
+          });
+
+          tabela.appendChild(tr);
         });
 
-        tabela.appendChild(tr);
-      });
+        document.getElementById("loading").style.display = "none";
+        tabela.style.display = "table";
 
-      document.getElementById("loading").style.display = "none";
-      tabela.style.display = "table";
+      } catch (erro) {
+        document.getElementById("loading").innerText = "Erro ao carregar dados.";
+        console.error("Erro ao carregar dados:", erro);
+      }
     }
 
     async function atualizarCelula(row, col, value) {
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ row, col, value })
-      });
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ row, col, value })
+        });
+      } catch (erro) {
+        alert("Erro ao salvar. Tente novamente.");
+        console.error("Erro ao salvar:", erro);
+      }
     }
 
     carregarDados();
