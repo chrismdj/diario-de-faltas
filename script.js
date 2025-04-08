@@ -1,6 +1,6 @@
 // ---------- CONFIGURAÇÃO OBRIGATÓRIA ----------
 // --- COLE AQUI A URL ATUALIZADA DO SEU WEB APP (DEPOIS DE REIMPLANTAR O APPS SCRIPT) ---
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKv8RnjQ23GvMosoKJeU72ElS9o8fgXQnqJet8Dfi_VwRlkjN1PyPfqtyPfonWvYlY1g/exec"; // <<< COLOQUE A URL CORRETA DA NOVA IMPLANTAÇÃO
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGrqftuTE8dbqZl_Bp9nXqD21PJ5hQknpLzm2-W3qWJSbcaHBbgsmC6AAn6Q1TCY7g7w/exec"; // <<< COLOQUE A URL CORRETA DA NOVA IMPLANTAÇÃO
 // ----------------------------------------------
 
 // Elementos da página
