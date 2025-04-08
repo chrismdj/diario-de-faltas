@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diário de Chamada Online</title>
+    <title>Diário de Chamada Online - Tabela Completa</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,23 +16,28 @@
             <option value="6B">6º B</option>
             <option value="7B">7º B</option>
             <option value="8B">8º B</option>
-			<option value="9B">9º B</option>
-			<option value="1 EM">1º EM</option>
-			<option value="2 EM">2º EM</option>
-			<option value="3 EM">3º EM</option>
+            <option value="9B">9º B</option>
+            <option value="1 EM">1º EM</option>
+            <option value="2 EM">2º EM</option>
+            <option value="3 EM">3º EM</option>
             </select>
 
-        <label for="callDate">Data:</label>
-        <input type="date" id="callDate">
-
-        <button id="loadButton">Carregar Chamada</button>
+        <button id="loadSheetButton">Carregar Turma</button>
     </div>
 
     <div id="loading" class="status-message" style="display: none;">Carregando dados...</div>
     <div id="updateStatus" class="status-message"></div>
 
-    <ul id="studentList">
-        </ul>
+    <div class="table-container">
+        <table id="attendanceTable">
+            <thead>
+                <tr><th>Carregando...</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Selecione uma turma e clique em "Carregar Turma".</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <script src="script.js"></script>
 </body>
