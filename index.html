@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Diário de Faltas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+  <h2>Diário de Faltas - 6º B</h2>
+  <div id="loading">Carregando dados...</div>
+  <table id="tabela" style="display:none"></table>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbywqNL07V-nAMH6er8XbfPM54CjrnjaJxatT74VhWB6Q8FQFotEYymu2e6NuEOm_I8XAQ/exec";
+
+    async function carregarDados() {
+      const resposta = await fetch(API_URL);
+      const dados = await resposta.json();
+
+      const tabela = document.getElementById("tabela");
+      tabela.innerHTML = "";
+
+      dados.forEach((linha, i) => {
+        const tr = document.createElement("tr");
+
+        linha.forEach((celula, j) => {
+          const tag = i === 0 ? "th" : "td";
+          const cell = document.createElement(tag);
+
+          if (i > 0 && j > 0) {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = celula === true;
+            checkbox.addEventListener("change", () => atualizarCelula(i, j, checkbox.checked));
+            cell.appendChild(checkbox);
+          } else {
+            cell.textContent = celula;
+          }
+
+          tr.appendChild(cell);
+        });
+
+        tabela.appendChild(tr);
+      });
+
+      document.getElementById("loading").style.display = "none";
+      tabela.style.display = "table";
+    }
+
+    async function atualizarCelula(row, col, value) {
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ row, col, value })
+      });
+    }
+
+    carregarDados();
+  </script>
+</body>
+</html>
