@@ -1,98 +1,139 @@
-/* Estilos básicos (mantidos) */
+/* Estilos básicos para organizar a página */
 body {
     font-family: sans-serif;
-    line-height: 1.6;
-    padding: 20px;
-    /* max-width: 800px; */ /* Removido ou aumentado para permitir tabela larga */
+    /* font-size: 100%; */ /* Tamanho padrão implícito */
+    font-size: 80%; /* <<< REDUZ O TAMANHO BASE DE TODO O TEXTO PARA 80% */
+    line-height: 1.5; /* Ajustado para fontes menores */
+    padding: 15px; /* Reduzido um pouco o padding geral */
     margin: 0 auto;
     background-color: #f4f4f4;
 }
 
-h1 { text-align: center; color: #333; }
-.controls { background-color: #fff; padding: 15px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-.controls label { font-weight: bold; }
-.controls select, .controls button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-.controls button { background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.2s ease; }
-.controls button:hover { background-color: #0056b3; }
-.status-message { text-align: center; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-weight: bold; }
+h1 {
+    text-align: center;
+    color: #333;
+    /* font-size: 2em; */ /* O tamanho relativo (em) será baseado no novo tamanho do body */
+}
+
+.controls {
+    background-color: #fff;
+    padding: 12px; /* Reduzido padding dos controles */
+    margin-bottom: 15px; /* Reduzido margem */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 12px; /* Reduzido espaçamento */
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.controls label {
+    font-weight: bold;
+    /* O tamanho da fonte herda do body (já menor) */
+}
+
+.controls select,
+.controls button {
+    /* padding: 8px 12px; */ /* Original */
+    padding: 5px 8px;  /* Reduzido padding interno */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em; /* <<< 1em agora significa 80% do tamanho padrão */
+}
+
+.controls button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.controls button:hover {
+    background-color: #0056b3;
+}
+
+.status-message {
+    text-align: center;
+    padding: 8px; /* Reduzido padding */
+    margin-bottom: 12px; /* Reduzido margem */
+    border-radius: 4px;
+    font-weight: bold;
+}
+
 #loading { background-color: #e0e0e0; color: #333; }
-#updateStatus { min-height: 1.5em; }
+#updateStatus { min-height: 1.5em; } /* Mantém altura mínima relativa */
 #updateStatus.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 #updateStatus.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-/* --- NOVOS ESTILOS PARA A TABELA --- */
+/* --- ESTILOS DA TABELA AJUSTADOS --- */
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Permite rolagem horizontal se a tabela for muito larga */
+    overflow-x: auto;
     background-color: #fff;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-top: 20px;
-    max-height: 70vh; /* Limita altura e adiciona rolagem vertical se necessário */
+    margin-top: 15px; /* Reduzido margem */
+    max-height: 70vh;
     overflow-y: auto;
 }
 
 #attendanceTable {
     border-collapse: collapse;
-    width: 100%; /* Tenta ocupar o espaço, mas pode ser maior que o container */
-    /* min-width: 600px; */ /* Removido min-width fixo, deixa ajustar */
+    width: 100%;
 }
 
 #attendanceTable th,
 #attendanceTable td {
     border: 1px solid #ddd;
-    padding: 6px 8px; /* Diminuído padding para caber mais colunas */
+    /* padding: 6px 8px; */ /* Anterior */
+    padding: 4px 5px;  /* <<< Padding BEM reduzido nas células */
     text-align: center;
-    white-space: nowrap; /* Evita quebra de linha nos cabeçalhos/células */
-    font-size: 0.9rem; /* Diminui um pouco a fonte */
+    white-space: nowrap;
+    /* font-size: 0.9rem; */ /* Anterior */
+    font-size: 0.85em; /* <<< Fonte da tabela ainda menor (relativo ao body de 80%) */
 }
 
 #attendanceTable thead th {
     background-color: #f2f2f2;
     font-weight: bold;
-    position: sticky; /* Faz o cabeçalho grudar no topo */
+    position: sticky;
     top: 0;
-    z-index: 10; /* Aumentado z-index */
+    z-index: 10;
 }
 
- /* Fixa a primeira coluna (Nome do Aluno) ao rolar horizontalmente */
+ /* Coluna fixa do nome */
 #attendanceTable thead th:first-child,
 #attendanceTable tbody td:first-child {
     position: sticky;
     left: 0;
-    background-color: #f9f9f9; /* Fundo ligeiramente diferente para destacar */
-    z-index: 5; /* Abaixo do cabeçalho, acima das células normais */
-    min-width: 150px; /* Garante espaço para o nome */
-    max-width: 250px; /* Evita que seja largo demais */
-    text-align: left; /* Alinha nomes à esquerda */
-    overflow: hidden; /* Esconde texto que não cabe */
-    text-overflow: ellipsis; /* Adiciona "..." se o nome for muito longo */
+    background-color: #f9f9f9;
+    z-index: 5;
+    /* min-width: 150px; */ /* Anterior */
+    min-width: 130px; /* <<< Largura mínima reduzida */
+    max-width: 220px; /* <<< Largura máxima reduzida */
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: normal; /* Nome do aluno não precisa ser bold */
+    font-size: 0.85em; /* Garante o mesmo tamanho de fonte */
 }
  #attendanceTable thead th:first-child {
-     background-color: #e9e9e9; /* Fundo do cabeçalho fixo */
-     z-index: 11; /* Acima do cabeçalho normal */
+     background-color: #e9e9e9;
+     z-index: 11;
+     font-weight: bold; /* Cabeçalho do nome em bold */
  }
 
-
-#attendanceTable tbody tr:nth-child(even) {
-    background-color: #f9f9f9; /* Linhas alternadas para melhor leitura */
-}
-
-#attendanceTable tbody tr:hover td:not(:first-child) { /* Efeito hover em todas menos na primeira coluna */
-    background-color: #f1f1f1;
-}
-#attendanceTable tbody tr:hover td:first-child { /* Mantém fundo da primeira coluna no hover */
-    background-color: #f9f9f9; /* Ou a cor base da linha (par/ímpar) */
-     /* background-color: #eef; Um leve destaque diferente */
-}
-
+#attendanceTable tbody tr:nth-child(even) { background-color: #f9f9f9; }
+#attendanceTable tbody tr:hover td:not(:first-child) { background-color: #f1f1f1; }
+#attendanceTable tbody tr:hover td:first-child { background-color: #f9f9f9; } /* Ou #eef */
 
 #attendanceTable input[type="checkbox"] {
     cursor: pointer;
-    transform: scale(1.1); /* Tamanho ajustado */
-    vertical-align: middle; /* Alinha melhor o checkbox na célula */
-    margin: 0; /* Remove margens padrão */
-    display: block; /* Faz ocupar o espaço da célula */
-    margin-left: auto; /* Centraliza o checkbox horizontalmente */
+    /* transform: scale(1.1); */ /* Anterior */
+    transform: scale(1.0); /* <<< Tamanho normal do checkbox (já parecerá menor) */
+    vertical-align: middle;
+    margin: 0;
+    display: block;
+    margin-left: auto;
     margin-right: auto;
 }
