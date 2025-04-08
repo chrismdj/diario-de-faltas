@@ -1,11 +1,11 @@
 // ---------- CONFIGURAÇÃO OBRIGATÓRIA ----------
-// --- COLE AQUI A URL ATUALIZADA DO SEU WEB APP (DEPOIS DE REIMPLANTAR O APPS SCRIPT) ---
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySPASLpUGORCyv0Dzk1ma4w4IF3O44If7XRISK24aMylAoBY-X_mbFOXMgaju25DLUCg/exec"; // <<< COLOQUE A URL CORRETA DA NOVA IMPLANTAÇÃO
+// --- VERIFIQUE SE ESTA É A URL CORRETA DA SUA ÚLTIMA IMPLANTAÇÃO ---
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySPASLpUGORCyv0Dzk1ma4w4IF3O44If7XRISK24aMylAoBY-X_mbFOXMgaju25DLUCg/exec"; // <<< COLOQUE A URL CORRETA AQUI
 // ----------------------------------------------
 
 // Elementos da página
 const sheetSelect = document.getElementById('sheetSelect');
-const loadSheetButton = document.getElementById('loadSheetButton'); // Novo botão
+const loadSheetButton = document.getElementById('loadSheetButton');
 const attendanceTable = document.getElementById('attendanceTable');
 const tableHead = attendanceTable.querySelector('thead');
 const tableBody = attendanceTable.querySelector('tbody');
@@ -25,6 +25,45 @@ function showStatus(message, isError = false) {
     }
 }
 
+// *** NOVA FUNÇÃO AUXILIAR PARA FORMATAR DATAS NO FRONTEND ***
+// Tenta converter strings de data (incluindo formatos longos) para DD/MM
+function formatHeaderDateToDDMM(dateString) {
+    if (!dateString || typeof dateString !== 'string') {
+        // Se não for string ou for vazia, retorna como está ou vazio
+        return dateString ? dateString.toString() : "";
+    }
+    try {
+        // Verifica se já está no formato DD/MM ou DD/MM/YYYY (simplificado)
+        if (/^\d{1,2}\/\d{1,2}(\/\d{2,4})?$/.test(dateString.trim())) {
+            // Se já parece DD/MM ou DD/MM/YYYY, retorna apenas DD/MM
+            const parts = dateString.trim().split('/');
+            return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}`;
+        }
+
+        // Tenta criar um objeto Date a partir da string recebida
+        // O construtor Date do JS consegue parsear muitos formatos, incluindo o longo
+        const dateObj = new Date(dateString);
+
+        // Verifica se o objeto Date criado é válido
+        if (isNaN(dateObj.getTime())) {
+            // Se não conseguiu parsear para uma data válida, retorna a string original
+            console.warn("Não foi possível parsear a data do cabeçalho:", dateString);
+            return dateString.trim(); // Retorna original (sem espaços extras)
+        }
+
+        // Se conseguiu parsear, formata para DD/MM
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Mês é 0-indexado
+        console.log(`Data original: [${dateString}] -> Formatada para: ${day}/${month}`); // Log de formatação
+        return `${day}/${month}`;
+
+    } catch (e) {
+        console.error("Erro ao formatar data do cabeçalho:", dateString, e);
+        return dateString.trim(); // Retorna original em caso de erro inesperado
+    }
+}
+
+
 // --- Funções Principais ---
 
 // Busca TODOS os dados da aba selecionada (doGet modificado no Apps Script)
@@ -36,191 +75,154 @@ async function loadSheetData() {
     }
 
     showLoading(true);
-    showStatus("Carregando dados da turma: " + selectedSheet + "..."); // Mensagem inicial
-    tableHead.innerHTML = '<tr><th>Carregando Cabeçalho...</th></tr>'; // Limpa cabeçalho antigo
-    tableBody.innerHTML = '<tr><td>Carregando Alunos...</td></tr>'; // Limpa corpo antigo
+    showStatus("Carregando dados da turma: " + selectedSheet + "...");
+    tableHead.innerHTML = '<tr><th>Carregando Cabeçalho...</th></tr>';
+    tableBody.innerHTML = '<tr><td>Carregando Alunos...</td></tr>';
 
-    // Constrói a URL para o doGet com o parâmetro sheet
     const fetchUrl = `${SCRIPT_URL}?sheet=${encodeURIComponent(selectedSheet)}`;
-
-    console.log("Attempting to fetch sheet data from:", fetchUrl); // Log para debug
+    console.log("Attempting to fetch sheet data from:", fetchUrl);
 
     try {
         const response = await fetch(fetchUrl);
         if (!response.ok) {
             let errorMsg = `Erro HTTP ${response.status}. Não foi possível buscar dados da turma.`;
-            try {
-                const errorData = await response.json();
-                if (errorData && errorData.message) errorMsg += ` Detalhe: ${errorData.message}`;
-            } catch (e) { /* Ignora */}
+            try { const errorData = await response.json(); if (errorData && errorData.message) errorMsg += ` Detalhe: ${errorData.message}`; } catch (e) {/* Ignora */}
             throw new Error(errorMsg);
         }
-
         const data = await response.json();
+         if (data.status === 'error') { throw new Error(data.message || "Erro retornado pelo Apps Script."); }
+         if (!data.headers || !data.students) { throw new Error("Resposta do servidor em formato inesperado."); }
 
-         if (data.status === 'error') {
-             throw new Error(data.message || "Erro retornado pelo Apps Script.");
-         }
-
-         if (!data.headers || !data.students) {
-             console.error("Formato de dados inesperado recebido:", data);
-             throw new Error("Resposta do servidor em formato inesperado.");
-         }
-
-        renderAttendanceTable(data.headers, data.students); // Chama a nova função de renderização
-        showStatus("Dados da turma carregados.", false); // Mensagem de sucesso ao carregar
-
-         if (data.message) { // Mostra mensagens informativas (ex: estrutura mínima não encontrada)
-             // Adiciona ao status existente ou mostra separadamente
-             showStatus(updateStatusElement.textContent + " | Aviso: " + data.message, false);
-         }
-
+        // *** CHAMA A FUNÇÃO DE RENDERIZAÇÃO (QUE AGORA FORMATARÁ AS DATAS) ***
+        renderAttendanceTable(data.headers, data.students);
+        showStatus("Dados da turma carregados.", false);
+         if (data.message) { showStatus(updateStatusElement.textContent + " | Aviso: " + data.message, false); }
 
     } catch (error) {
         console.error("Erro ao buscar dados da planilha:", error);
         showStatus(`Erro ao carregar dados: ${error.message}`, true);
-         // Limpa a tabela em caso de erro para não mostrar dados parciais/antigos
          tableHead.innerHTML = '<tr><th>Erro</th></tr>';
-         tableBody.innerHTML = '<tr><td>Não foi possível carregar os dados. Verifique o console (F12). Pode ser um problema na URL do script ou na implantação.</td></tr>';
+         tableBody.innerHTML = '<tr><td>Não foi possível carregar os dados. Verifique o console (F12).</td></tr>';
     } finally {
         showLoading(false);
     }
 }
 
-// Renderiza a tabela completa de presença
-function renderAttendanceTable(headers, students) {
-    // 1. Limpa a tabela existente
+// Renderiza a tabela completa de presença (MODIFICADA para usar formatHeaderDateToDDMM)
+function renderAttendanceTable(originalHeaders, students) {
     tableHead.innerHTML = '';
     tableBody.innerHTML = '';
 
-    // 2. Cria o cabeçalho da tabela (Thead)
+    // 1. Cria o cabeçalho da tabela (Thead) E FORMATA AS DATAS
     const headerRow = tableHead.insertRow();
     const thName = document.createElement('th');
     thName.textContent = 'Nome do Aluno';
     headerRow.appendChild(thName);
 
-    if (!headers || headers.length === 0) {
-        // Se não houver cabeçalhos de data, exibe apenas o nome
-        console.warn("Nenhum cabeçalho de data recebido.");
+    // Array para guardar os cabeçalhos formatados para usar depois nos data-attributes
+    const formattedHeaders = [];
+
+    if (!originalHeaders || originalHeaders.length === 0) {
+        console.warn("Nenhum cabeçalho de data recebido do script.");
     } else {
-        headers.forEach(date => {
+        originalHeaders.forEach(originalHeader => {
             const thDate = document.createElement('th');
-            thDate.textContent = date; // Data no formato DD/MM (ou o que vier do script)
+            // *** FORMATA A DATA AQUI usando a nova função auxiliar ***
+            const formattedDate = formatHeaderDateToDDMM(originalHeader);
+            thDate.textContent = formattedDate; // Mostra a data formatada
             headerRow.appendChild(thDate);
+            formattedHeaders.push(formattedDate); // Guarda a data formatada (DD/MM)
         });
     }
 
-
-    // 3. Cria as linhas da tabela (Tbody) para cada aluno
+    // 2. Cria as linhas da tabela (Tbody) para cada aluno
     if (!students || students.length === 0) {
-         // Calcula colspan baseado no número real de headers + 1 (para nome)
-         const colspan = (headers ? headers.length : 0) + 1;
+         const colspan = formattedHeaders.length + 1;
          tableBody.innerHTML = '<tr><td colspan="' + colspan + '">Nenhum aluno encontrado nesta turma.</td></tr>';
          return;
      }
 
     students.forEach(student => {
-        if (!student || !student.name) {
-            console.warn("Linha de aluno inválida ou sem nome encontrada:", student);
-            return; // Pula linha de aluno inválida
-        }
-
+        if (!student || !student.name) return;
 
         const tr = tableBody.insertRow();
-
-        // Célula do nome do aluno
         const tdName = tr.insertCell();
         tdName.textContent = student.name;
 
-        // Células de checkbox para cada data correspondente ao cabeçalho
-        headers.forEach((date, index) => {
+        // Células de checkbox para cada data, usando os HEADERS FORMATADOS
+        formattedHeaders.forEach((formattedDate, index) => {
             const tdCheck = tr.insertCell();
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            // Associa os dados necessários ao checkbox
             checkbox.dataset.studentName = student.name;
-            checkbox.dataset.date = date; // Guarda a data DD/MM do cabeçalho
+            // *** GUARDA A DATA FORMATADA (DD/MM) no data-date ***
+            // Isso garante que handleAttendanceChange envie o formato correto para doPost
+            checkbox.dataset.date = formattedDate;
 
-            // Define o estado inicial do checkbox
-            // Verifica se student.attendance existe, é um array e tem o índice
             checkbox.checked = (student.attendance && Array.isArray(student.attendance) && student.attendance[index] === true);
 
-            // Adiciona o event listener para quando o checkbox mudar
-            checkbox.addEventListener('change', handleAttendanceChange);
+            // Opcional: Desabilitar checkbox se a data formatada não parecer válida (ex: ficou em branco)
+             if (!formattedDate || !/^\d{1,2}\/\d{1,2}$/.test(formattedDate)) {
+                 // checkbox.disabled = true;
+                 // console.warn(`Checkbox para ${student.name} com data inválida ou não formatada: ${formattedDate}`);
+             }
 
+            checkbox.addEventListener('change', handleAttendanceChange);
             tdCheck.appendChild(checkbox);
         });
     });
 }
 
-// Lida com a mudança no estado de um checkbox (doPost - Nenhuma mudança necessária aqui)
+// Lida com a mudança no estado de um checkbox (doPost - NENHUMA ALTERAÇÃO NECESSÁRIA AQUI)
 // Copie a função handleAttendanceChange da versão anterior que você já tem.
 async function handleAttendanceChange(event) {
     const checkbox = event.target;
     const studentName = checkbox.dataset.studentName;
-    const dateString = checkbox.dataset.date; // Pega a data do atributo data-date
+    const dateString = checkbox.dataset.date; // Pega a data DD/MM do atributo data-date
     const isAbsent = checkbox.checked;
-    const selectedSheet = sheetSelect.value; // Pega a aba selecionada
+    const selectedSheet = sheetSelect.value;
 
     if (!selectedSheet || !dateString || !studentName) {
         console.error("Faltando dados (checkbox) para atualizar:", { selectedSheet, dateString, studentName });
         showStatus("Erro interno: Não foi possível identificar os dados do checkbox para atualização.", true);
-        checkbox.checked = !isAbsent; // Reverte visualmente
-        return;
+        checkbox.checked = !isAbsent; return;
     }
-
-    // Verifica se a data é válida (não vazia) antes de prosseguir
-     if (!dateString) {
-         console.error("Checkbox sem data associada não pode ser atualizado.");
-         showStatus("Erro: Checkbox sem data válida.", true);
-         checkbox.checked = !isAbsent; // Reverte
-         return;
+     if (!/^\d{1,2}\/\d{1,2}$/.test(dateString)) { // Valida se a data no dataset é DD/MM
+         console.error("Data inválida no checkbox:", dateString);
+         showStatus(`Erro: Data inválida (${dateString}) associada ao checkbox. Atualização cancelada.`, true);
+         checkbox.checked = !isAbsent; return;
      }
 
-    showStatus(`Atualizando ${studentName} em ${dateString}...`);
 
-    const payload = {
-        sheet: selectedSheet,
-        student: studentName,
-        date: dateString, // Envia DD/MM (ou o que estiver no data-date)
-        absent: isAbsent
-    };
+    showStatus(`Atualizando ${studentName} em ${dateString}...`);
+    const payload = { sheet: selectedSheet, student: studentName, date: dateString, absent: isAbsent };
 
     try {
         const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            cache: 'no-cache',
+            method: 'POST', cache: 'no-cache',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-             redirect: 'follow'
+            body: JSON.stringify(payload), redirect: 'follow'
         });
-
         if (!response.ok) {
              let errorMsg = `Erro HTTP ${response.status} ao atualizar.`;
              try { const errorData = await response.json(); if (errorData && errorData.message) errorMsg += ` Detalhe: ${errorData.message}`; } catch (e) {/* Ignora */}
              throw new Error(errorMsg);
         }
-
         const result = await response.json();
-
         if (result.status === 'success') {
             showStatus(result.message || `Status de ${studentName} atualizado com sucesso!`, false);
         } else {
              throw new Error(result.message || "Erro retornado pelo script ao atualizar.");
         }
-
     } catch (error) {
         console.error("Erro ao atualizar presença:", error);
         showStatus(`Erro ao atualizar ${studentName}: ${error.message}`, true);
-        checkbox.checked = !isAbsent; // Reverte visualmente
+        checkbox.checked = !isAbsent;
     }
 }
 
 // --- Inicialização ---
 window.addEventListener('DOMContentLoaded', (event) => {
-    // Adiciona listener ao botão de carregar TURMA
     loadSheetButton.addEventListener('click', loadSheetData);
-    // O listener para os checkboxes é adicionado dinamicamente em renderAttendanceTable
-    // Não carregamos nada automaticamente ao iniciar, espera o botão.
-     showStatus("Selecione uma turma e clique em 'Carregar Turma'."); // Mensagem inicial
+     showStatus("Selecione uma turma e clique em 'Carregar Turma'.");
 });
