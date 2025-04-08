@@ -1,6 +1,6 @@
 // ---------- CONFIGURAÇÃO OBRIGATÓRIA ----------
 // --- COLE AQUI A URL DO SEU WEB APP DO GOOGLE APPS SCRIPT ---
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztq3Gwn-14csNOFZ2-VxhpkeWFMN634oiwKgOGMhS4eYSa-StcE9Yn7_9Coo-RDV9Jcg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylnp-vM7YUF6h_mf9NRy_c-mwyBcWa9R2kXFfj7R7oPRFJTxFE4kS-qqcqDg4hVmN9cA/exec";
 // ----------------------------------------------
 
 // Elementos da página
