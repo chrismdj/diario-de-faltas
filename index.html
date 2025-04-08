@@ -1,100 +1,39 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Diário de Faltas - 6B</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      overflow-x: auto;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      min-width: 800px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    input[type="checkbox"] {
-      transform: scale(1.2);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Chamada Online</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Diário de Faltas - 6B</h2>
-  <div id="loading">Carregando dados...</div>
-  <table id="tabela" style="display:none"></table>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwZztTRm5Q9UioUZY3BWmjQLq8pE0KpcaP8qNMC6Fqb7dFj1y8uJdg-x47oFMDkr40XYg/exec";
+    <h1>Diário de Chamada</h1>
 
-    async function carregarDados() {
-      try {
-        const resposta = await fetch(API_URL);
-        const dados = await resposta.json();
+    <div class="controls">
+        <label for="sheetSelect">Turma/Aba:</label>
+        <select id="sheetSelect">
+            <option value="6B">6º B</option>
+            <option value="7B">7º B</option>
+            <option value="8B">8º B</option>
+			<option value="9B">9º B</option>
+			<option value="1 EM">1º EM</option>
+			<option value="2 EM">2º EM</option>
+			<option value="3 EM">3º EM</option>
+            </select>
 
-        if (!dados || dados.length === 0) {
-          throw new Error("Nenhum dado encontrado.");
-        }
+        <label for="callDate">Data:</label>
+        <input type="date" id="callDate">
 
-        const tabela = document.getElementById("tabela");
-        tabela.innerHTML = "";
+        <button id="loadButton">Carregar Chamada</button>
+    </div>
 
-        dados.forEach((linha, i) => {
-          const tr = document.createElement("tr");
+    <div id="loading" class="status-message" style="display: none;">Carregando dados...</div>
+    <div id="updateStatus" class="status-message"></div>
 
-          linha.forEach((celula, j) => {
-            const tag = i === 0 ? "th" : "td";
-            const cell = document.createElement(tag);
+    <ul id="studentList">
+        </ul>
 
-            if (i > 0 && j > 0) {
-              const checkbox = document.createElement("input");
-              checkbox.type = "checkbox";
-              checkbox.checked = (celula === true || celula === "TRUE" || celula === "✓");
-              checkbox.addEventListener("change", () => atualizarCelula(i, j, checkbox.checked));
-              cell.appendChild(checkbox);
-            } else {
-              cell.textContent = celula;
-            }
-
-            tr.appendChild(cell);
-          });
-
-          tabela.appendChild(tr);
-        });
-
-        document.getElementById("loading").style.display = "none";
-        tabela.style.display = "table";
-
-      } catch (erro) {
-        document.getElementById("loading").innerText = `Erro ao carregar dados: ${erro.message}`;
-        console.error("Erro ao carregar dados:", erro);
-      }
-    }
-
-    async function atualizarCelula(row, col, value) {
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ row, col, value })
-        });
-        const result = await response.text();
-        console.log("Resultado:", result);
-      } catch (error) {
-        alert("Erro ao salvar. Tente novamente.");
-        console.error("Erro ao salvar:", error);
-      }
-    }
-
-    carregarDados();
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
