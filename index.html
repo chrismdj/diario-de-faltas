@@ -40,6 +40,10 @@
         const resposta = await fetch(API_URL);
         const dados = await resposta.json();
 
+        if (!dados || dados.length === 0) {
+          throw new Error("Nenhum dado encontrado.");
+        }
+
         const tabela = document.getElementById("tabela");
         tabela.innerHTML = "";
 
@@ -53,7 +57,7 @@
             if (i > 0 && j > 0) {
               const checkbox = document.createElement("input");
               checkbox.type = "checkbox";
-              checkbox.checked = celula === true || celula === "TRUE" || celula === "✓";
+              checkbox.checked = (celula === true || celula === "TRUE" || celula === "✓");
               checkbox.addEventListener("change", () => atualizarCelula(i, j, checkbox.checked));
               cell.appendChild(checkbox);
             } else {
@@ -70,21 +74,23 @@
         tabela.style.display = "table";
 
       } catch (erro) {
-        document.getElementById("loading").innerText = "Erro ao carregar dados.";
+        document.getElementById("loading").innerText = `Erro ao carregar dados: ${erro.message}`;
         console.error("Erro ao carregar dados:", erro);
       }
     }
 
     async function atualizarCelula(row, col, value) {
       try {
-        await fetch(API_URL, {
+        const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ row, col, value })
         });
-      } catch (erro) {
+        const result = await response.text();
+        console.log("Resultado:", result);
+      } catch (error) {
         alert("Erro ao salvar. Tente novamente.");
-        console.error("Erro ao salvar:", erro);
+        console.error("Erro ao salvar:", error);
       }
     }
 
